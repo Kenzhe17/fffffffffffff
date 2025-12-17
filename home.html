@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - UniSync</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Added Supabase client library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="lib/supabase-local.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F9FAFB;
+            color: #2F345C;
+            min-height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Added dark mode styles */
+        body.dark-mode {
+            background-color: #1f2441;
+            color: #f5f5f5;
+        }
+
+        .header {
+            background-color: #2F345C;
+            color: #FFFFFF;
+            padding: 20px 24px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
+        }
+
+        body.dark-mode .header {
+            background-color: #1a1f35;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-badge {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        /* Added theme toggle button styling */
+        .theme-toggle, .logout-btn {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #FFFFFF;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .theme-toggle {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .theme-toggle:hover, .logout-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        .welcome {
+            margin-bottom: 40px;
+        }
+
+        .welcome h2 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2F345C;
+            margin-bottom: 8px;
+            transition: color 0.3s ease;
+        }
+
+        body.dark-mode .welcome h2 {
+            color: #fff;
+        }
+
+        .welcome p {
+            font-size: 16px;
+            color: #6B7280;
+            transition: color 0.3s ease;
+        }
+
+        body.dark-mode .welcome p {
+            color: #aaa;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .menu-card {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 4px rgba(47, 52, 92, 0.08);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        body.dark-mode .menu-card {
+            background: #2F345C;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .menu-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(47, 52, 92, 0.12);
+        }
+
+        body.dark-mode .menu-card:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+        }
+
+        .menu-card-icon {
+            width: 48px;
+            height: 48px;
+            background-color: #2F345C;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            font-size: 24px;
+            transition: background-color 0.3s ease;
+        }
+
+        body.dark-mode .menu-card-icon {
+            background-color: #4b5cb7;
+        }
+
+        .menu-card h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2F345C;
+            margin-bottom: 8px;
+            transition: color 0.3s ease;
+        }
+
+        body.dark-mode .menu-card h3 {
+            color: #fff;
+        }
+
+        .menu-card p {
+            font-size: 14px;
+            color: #6B7280;
+            line-height: 1.5;
+            transition: color 0.3s ease;
+        }
+
+        body.dark-mode .menu-card p {
+            color: #aaa;
+        }
+
+        .student-only {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>UniSync</h1>
+            <div class="user-info">
+                <span class="user-badge" id="userBadge"></span>
+                <!-- Added theme toggle button -->
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="welcome">
+            <h2 id="welcomeText">Welcome back!</h2>
+            <p>Select a service to get started</p>
+        </div>
+
+        <div class="menu-grid">
+            <a href="lostfound.html" class="menu-card">
+                <div class="menu-card-icon">🔍</div>
+                <h3>Lost & Found</h3>
+                <p>Report lost items or find what you're looking for</p>
+            </a>
+
+            <a href="roomfinder.html" class="menu-card">
+                <div class="menu-card-icon">📍</div>
+                <h3>Room Finder</h3>
+                <p>Locate classrooms and facilities on campus</p>
+            </a>
+
+            <a href="feed.html" class="menu-card">
+                <div class="menu-card-icon">📰</div>
+                <h3>Campus Feed</h3>
+                <p>Stay updated with campus news and events</p>
+            </a>
+
+            <a href="grades.html" class="menu-card student-only">
+                <div class="menu-card-icon">📊</div>
+                <h3>Grades</h3>
+                <p>View your academic performance and grades</p>
+            </a>
+
+            <a href="attendance.html" class="menu-card student-only">
+                <div class="menu-card-icon">✓</div>
+                <h3>Attendance</h3>
+                <p>Check your attendance records</p>
+            </a>
+
+            <a href="homework.html" class="menu-card student-only">
+                <div class="menu-card-icon">📝</div>
+                <h3>Homework</h3>
+                <p>View and submit your assignments</p>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        async function checkAuth() {
+            const role = localStorage.getItem('role');
+            const user = localStorage.getItem('user');
+
+            // Check if user exists in localStorage
+            if (!role || !user) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // For non-guest users, verify with Supabase
+            if (role !== 'guest') {
+                const supabaseUser = await SupabaseLocal.getCurrentUser();
+                
+                if (!supabaseUser) {
+                    // Session expired, redirect to login
+                    localStorage.clear();
+                    window.location.href = 'index.html';
+                    return;
+                }
+            }
+
+            // Update welcome message
+            document.getElementById('welcomeText').textContent = `Welcome back, ${user}!`;
+            document.getElementById('userBadge').textContent = role === 'student' ? 'SDU Student' : 'Guest';
+
+            // Show student-only features
+            if (role === 'student') {
+                document.querySelectorAll('.student-only').forEach(el => {
+                    el.style.display = 'block';
+                });
+            }
+        }
+
+        function initTheme() {
+            const theme = localStorage.getItem('theme') || 'light';
+            if (theme === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.querySelector('.theme-toggle').textContent = '☀️';
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.querySelector('.theme-toggle').textContent = isDark ? '☀️' : '🌙';
+        }
+
+        // Logout function
+        async function logout() {
+            const role = localStorage.getItem('role');
+            
+            // Sign out from Supabase if not a guest
+            if (role !== 'guest') {
+                await SupabaseLocal.signOut();
+            }
+            
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            checkAuth();
+        });
+    </script>
+</body>
+</html>

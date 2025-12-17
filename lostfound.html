@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lost & Found - UniSync</title>
+    <!-- Added Tailwind CSS and Alpine.js frameworks -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="lib/supabase.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2F345C',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* Added dark mode support */
+        body {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        body.dark-mode {
+            background-color: #1f2441 !important;
+            color: #f5f5f5 !important;
+        }
+
+        body.dark-mode .bg-primary {
+            background-color: #1a1f35 !important;
+        }
+
+        body.dark-mode .bg-white {
+            background-color: #2F345C !important;
+        }
+
+        body.dark-mode .text-gray-600 {
+            color: #aaa !important;
+        }
+
+        body.dark-mode .text-gray-50 {
+            background-color: #36406d !important;
+        }
+
+        body.dark-mode .border-gray-200 {
+            border-color: #444 !important;
+        }
+
+        body.dark-mode input, body.dark-mode textarea, body.dark-mode select {
+            background-color: #1f2441 !important;
+            color: #f5f5f5 !important;
+            border-color: #444 !important;
+        }
+
+        .theme-toggle-btn {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: #4b5cb7;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle-btn:hover {
+            transform: scale(1.1);
+            background: #3a46a1;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-primary min-h-screen" x-data="lostFound()">
+    <!-- Added theme toggle button -->
+    <button class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+    
+    <!-- Updated header with Tailwind classes -->
+    <div class="bg-primary text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Lost & Found</h1>
+            <a href="home.html" class="bg-white/10 hover:bg-white/20 border border-white/30 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200">
+                ← Back to Home
+            </a>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-6 py-10">
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-primary mb-2">Lost & Found</h2>
+            <p class="text-gray-600">Report lost items or browse found items</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md p-8">
+            <!-- Updated tabs with Tailwind and Alpine.js -->
+            <div class="flex gap-4 mb-8 border-b-2 border-gray-200">
+                <button @click="activeTab = 'report'" 
+                        :class="activeTab === 'report' ? 'text-primary border-primary' : 'text-gray-500 border-transparent hover:text-primary'"
+                        class="px-6 py-3 font-medium border-b-2 -mb-0.5 transition-all duration-200">
+                    Report Item
+                </button>
+                <button @click="activeTab = 'browse'" 
+                        :class="activeTab === 'browse' ? 'text-primary border-primary' : 'text-gray-500 border-transparent hover:text-primary'"
+                        class="px-6 py-3 font-medium border-b-2 -mb-0.5 transition-all duration-200">
+                    Browse Items
+                </button>
+            </div>
+
+            <!-- Report Tab -->
+            <div x-show="activeTab === 'report'" x-transition class="fade-in">
+                <form @submit.prevent="submitReport" class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-medium text-primary mb-2">Item Type</label>
+                        <select x-model="form.type" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary focus:outline-none transition-colors">
+                            <option value="">Select type</option>
+                            <option value="lost">Lost</option>
+                            <option value="found">Found</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Enhanced category selection with better styling -->
+                    <div>
+                        <label class="block text-sm font-medium text-primary mb-2">Category</label>
+                        <select x-model="form.category" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary focus:outline-none transition-colors">
+                            <option value="">Select category</option>
+                            <option value="Electronics">📱 Electronics</option>
+                            <option value="Clothing">👕 Clothing</option>
+                            <option value="Books">📚 Books & Stationery</option>
+                            <option value="Accessories">👜 Accessories</option>
+                            <option value="Keys">🔑 Keys & Cards</option>
+                            <option value="Sports">⚽ Sports Equipment</option>
+                            <option value="Other">📦 Other</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-primary mb-2">Item Name</label>
+                        <input type="text" x-model="form.name" placeholder="e.g., Blue backpack" required 
+                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary focus:outline-none transition-colors">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-primary mb-2">Description</label>
+                        <textarea x-model="form.description" placeholder="Provide details about the item..." required 
+                                  class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary focus:outline-none transition-colors min-h-[100px] resize-y"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-primary mb-2">Location</label>
+                        <input type="text" x-model="form.location" placeholder="Where was it lost/found?" required 
+                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary focus:outline-none transition-colors">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-primary mb-2">Contact Information</label>
+                        <input type="text" x-model="form.contact" placeholder="Your email or phone number" required 
+                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary focus:outline-none transition-colors">
+                    </div>
+                    
+                    <!-- Enhanced image upload with better preview -->
+                    <div>
+                        <label class="block text-sm font-medium text-primary mb-2">Upload Photo (Optional)</label>
+                        <input type="file" @change="handleImageUpload" accept="image/*" 
+                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary focus:outline-none transition-colors">
+                        <div x-show="form.image" class="mt-4">
+                            <img :src="form.image" alt="Preview" class="w-48 h-48 object-cover rounded-lg border-2 border-gray-200">
+                            <button type="button" @click="removeImage" class="mt-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium">
+                                Remove Image
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Updated submit button with loading state -->
+                    <button type="submit" :disabled="loading" class="w-full bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-all duration-200 hover:-translate-y-0.5 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span x-show="!loading">Submit Report</span>
+                        <span x-show="loading">Submitting...</span>
+                    </button>
+                    
+                    <!-- Added error/success messages -->
+                    <div x-show="error" x-transition class="p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg text-sm" x-text="error"></div>
+                    <div x-show="success" x-transition class="p-4 bg-green-50 border border-green-200 text-green-800 rounded-lg text-sm" x-text="success"></div>
+                </form>
+            </div>
+
+            <!-- Browse Tab -->
+            <div x-show="activeTab === 'browse'" x-transition class="fade-in">
+                <!-- Enhanced filter section with beautiful pill buttons -->
+                <div class="mb-6 p-5 bg-gray-50 rounded-xl border border-gray-200">
+                    <h4 class="text-base font-semibold text-primary mb-3">Filter by Category</h4>
+                    <div class="flex flex-wrap gap-2">
+                        <template x-for="cat in categories" :key="cat">
+                            <button @click="filterCategory = cat" 
+                                    :class="filterCategory === cat ? 'bg-primary text-white border-primary' : 'bg-white text-gray-600 border-gray-300 hover:border-primary hover:text-primary'"
+                                    class="px-4 py-2 rounded-full border-2 text-sm font-medium transition-all duration-200"
+                                    x-text="cat">
+                            </button>
+                        </template>
+                    </div>
+                </div>
+                
+                <!-- Added loading state -->
+                <div x-show="loading" class="text-center py-12">
+                    <div class="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                    <p class="text-gray-600 mt-4">Loading items...</p>
+                </div>
+                
+                <!-- Items List -->
+                <div x-show="!loading" class="space-y-4">
+                    <template x-for="item in filteredItems" :key="item.id">
+                        <div class="bg-gray-50 rounded-xl p-5 border border-gray-200 flex gap-4 hover:shadow-md transition-shadow duration-200">
+                            <img x-show="item.image_url" :src="item.image_url" :alt="item.title" class="w-24 h-24 rounded-lg object-cover flex-shrink-0">
+                            <div class="flex-1">
+                                <!-- Updated to use database field names -->
+                                <h4 class="text-lg font-semibold text-primary mb-2" x-text="item.title"></h4>
+                                <span class="inline-block px-3 py-1 bg-blue-100 text-primary rounded-full text-xs font-medium mb-2" x-text="item.category"></span>
+                                <p class="text-sm text-gray-600 mb-1"><strong>Status:</strong> <span x-text="item.type === 'lost' ? 'Lost' : 'Found'"></span></p>
+                                <p class="text-sm text-gray-600 mb-1"><strong>Description:</strong> <span x-text="item.description"></span></p>
+                                <p class="text-xs text-gray-400 mt-2">Posted <span x-text="new Date(item.created_at).toLocaleDateString()"></span></p>
+                            </div>
+                        </div>
+                    </template>
+                    
+                    <div x-show="filteredItems.length === 0 && !loading" class="text-center py-12 text-gray-500">
+                        <p class="text-lg">No items found in this category.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function lostFound() {
+            return {
+                activeTab: 'report',
+                filterCategory: 'All',
+                categories: ['All', 'Electronics', 'Clothing', 'Books', 'Accessories', 'Keys', 'Sports', 'Other'],
+                form: {
+                    type: '',
+                    category: '',
+                    name: '',
+                    description: '',
+                    location: '',
+                    contact: '',
+                    image: null
+                },
+                items: [],
+                loading: false,
+                error: null,
+                success: null,
+                
+                async init() {
+                    const role = localStorage.getItem('role');
+                    const user = localStorage.getItem('user');
+                    if (!role || !user) {
+                        window.location.href = 'index.html';
+                        return;
+                    }
+                    
+                    await this.loadItems();
+                },
+                
+                async loadItems() {
+                    this.loading = true;
+                    this.error = null;
+                    
+                    try {
+                        const { data, error } = await getLostFoundItems();
+                        if (error) throw error;
+                        this.items = data || [];
+                    } catch (err) {
+                        console.error('Error loading items:', err);
+                        this.error = 'Failed to load items. Please refresh the page.';
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                get filteredItems() {
+                    if (this.filterCategory === 'All') {
+                        return this.items;
+                    }
+                    return this.items.filter(item => item.category === this.filterCategory);
+                },
+                
+                handleImageUpload(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            this.form.image = e.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                },
+                
+                removeImage() {
+                    this.form.image = null;
+                },
+                
+                async submitReport() {
+                    this.loading = true;
+                    this.error = null;
+                    this.success = null;
+                    
+                    try {
+                        const newItem = {
+                            title: this.form.name,
+                            description: this.form.description,
+                            category: this.form.category,
+                            type: this.form.type,
+                            image_url: this.form.image,
+                            status: 'active'
+                        };
+                        
+                        const { data, error } = await createLostFoundItem(newItem);
+                        if (error) throw error;
+                        
+                        this.success = 'Item reported successfully! Thank you for your submission.';
+                        
+                        // Reset form
+                        this.form = {
+                            type: '',
+                            category: '',
+                            name: '',
+                            description: '',
+                            location: '',
+                            contact: '',
+                            image: null
+                        };
+                        
+                        // Reload items
+                        await this.loadItems();
+                        
+                        // Switch to browse tab after 2 seconds
+                        setTimeout(() => {
+                            this.activeTab = 'browse';
+                            this.success = null;
+                        }, 2000);
+                    } catch (err) {
+                        console.error('Error submitting report:', err);
+                        this.error = err.message || 'Failed to submit report. Please try again.';
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            }
+        }
+
+        function initTheme() {
+            const theme = localStorage.getItem('theme') || 'light';
+            if (theme === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.querySelector('.theme-toggle-btn').textContent = '☀️';
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.querySelector('.theme-toggle-btn').textContent = isDark ? '☀️' : '🌙';
+        }
+
+        document.addEventListener('DOMContentLoaded', initTheme);
+    </script>
+</body>
+</html>

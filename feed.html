@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Feed - UniSync</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="lib/supabase.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F9FAFB;
+            color: #2F345C;
+            min-height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        body.dark-mode {
+            background-color: #1f2441 !important;
+            color: #f5f5f5 !important;
+        }
+
+        body.dark-mode .header {
+            background-color: #1a1f35 !important;
+        }
+
+        body.dark-mode .post-card {
+            background: #2F345C !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        body.dark-mode .post-content p,
+        body.dark-mode .post-info p {
+            color: #aaa !important;
+        }
+
+        body.dark-mode .filter-btn {
+            background-color: #2F345C !important;
+            border-color: #444 !important;
+            color: #f5f5f5 !important;
+        }
+
+        body.dark-mode .filter-btn.active {
+            background-color: #4b5cb7 !important;
+            border-color: #4b5cb7 !important;
+        }
+
+        .header {
+            background-color: #2F345C;
+            color: #FFFFFF;
+            padding: 20px 24px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .back-btn {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #FFFFFF;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .back-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        .page-title {
+            margin-bottom: 32px;
+        }
+
+        .page-title h2 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2F345C;
+            margin-bottom: 8px;
+        }
+
+        .page-title p {
+            font-size: 16px;
+            color: #6B7280;
+        }
+
+        .post-card {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 4px rgba(47, 52, 92, 0.08);
+            margin-bottom: 20px;
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .post-avatar {
+            width: 48px;
+            height: 48px;
+            background-color: #2F345C;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFFFFF;
+            font-weight: 600;
+            font-size: 18px;
+            margin-right: 12px;
+        }
+
+        .post-info h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2F345C;
+            margin-bottom: 2px;
+        }
+
+        .post-info p {
+            font-size: 14px;
+            color: #9CA3AF;
+        }
+
+        .post-content {
+            margin-bottom: 16px;
+        }
+
+        .post-content h4 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2F345C;
+            margin-bottom: 8px;
+        }
+
+        .post-content p {
+            font-size: 15px;
+            color: #4B5563;
+            line-height: 1.6;
+        }
+
+        .post-tag {
+            display: inline-block;
+            background-color: #F3F4F6;
+            color: #2F345C;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-top: 12px;
+        }
+
+        .post-tag.event {
+            background-color: #DBEAFE;
+            color: #1E40AF;
+        }
+
+        .post-tag.announcement {
+            background-color: #FEF3C7;
+            color: #92400E;
+        }
+
+        .post-tag.news {
+            background-color: #D1FAE5;
+            color: #065F46;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            background-color: #FFFFFF;
+            color: #6B7280;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background-color: #2F345C;
+            color: #FFFFFF;
+            border-color: #2F345C;
+        }
+
+        .theme-toggle-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4b5cb7;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle-btn:hover {
+            transform: scale(1.1);
+            background: #3a46a1;
+        }
+
+        #loadingContainer {
+            text-align: center;
+            padding: 40px;
+        }
+
+        #loadingContainer div {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4b5cb7;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        #loadingContainer p {
+            margin-top: 16px;
+            color: #6B7280;
+        }
+
+        #emptyState {
+            display: none;
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        #emptyState p {
+            font-size: 18px;
+            color: #6B7280;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+    
+    <div class="header">
+        <div class="header-content">
+            <h1>Campus Feed</h1>
+            <a href="home.html" class="back-btn">← Back to Home</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-title">
+            <h2>Campus Feed</h2>
+            <p>Stay updated with campus news and events</p>
+        </div>
+
+        <div class="filter-buttons">
+            <button class="filter-btn active" onclick="filterPosts('all')">All</button>
+            <button class="filter-btn" onclick="filterPosts('event')">Events</button>
+            <button class="filter-btn" onclick="filterPosts('announcement')">Announcements</button>
+            <button class="filter-btn" onclick="filterPosts('news')">News</button>
+        </div>
+
+        <div id="loadingContainer">
+            <div style="display: inline-block; width: 40px; height: 40px; border: 3px solid #f3f3f3; border-top: 3px solid #4b5cb7; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+            <p style="margin-top: 16px; color: #6B7280;">Loading announcements...</p>
+        </div>
+
+        <div id="feedContainer"></div>
+        
+        <div id="emptyState">
+            <p style="font-size: 18px; color: #6B7280;">No announcements to display.</p>
+        </div>
+    </div>
+
+    <script>
+        let currentFilter = 'all';
+        let allAnnouncements = [];
+
+        // Check authentication
+        const role = localStorage.getItem('role');
+        const user = localStorage.getItem('user');
+
+        if (!role || !user) {
+            window.location.href = 'index.html';
+        }
+
+        async function loadAnnouncements() {
+            const loadingEl = document.getElementById('loadingContainer');
+            const feedEl = document.getElementById('feedContainer');
+            const emptyEl = document.getElementById('emptyState');
+            
+            try {
+                const { data, error } = await getAnnouncements();
+                if (error) throw error;
+                
+                allAnnouncements = data || [];
+                
+                loadingEl.style.display = 'none';
+                
+                if (allAnnouncements.length === 0) {
+                    emptyEl.style.display = 'block';
+                    feedEl.style.display = 'none';
+                } else {
+                    emptyEl.style.display = 'none';
+                    feedEl.style.display = 'block';
+                    renderAnnouncements(allAnnouncements);
+                }
+            } catch (error) {
+                console.error('Error loading announcements:', error);
+                loadingEl.innerHTML = '<p style="color: #EF4444; text-align: center;">Failed to load announcements. Please refresh the page.</p>';
+            }
+        }
+
+        function renderAnnouncements(announcements) {
+            const feedEl = document.getElementById('feedContainer');
+            
+            if (announcements.length === 0) {
+                feedEl.innerHTML = '<p style="text-align: center; padding: 40px; color: #6B7280;">No announcements match this filter.</p>';
+                return;
+            }
+            
+            feedEl.innerHTML = announcements.map(ann => {
+                const categoryClass = ann.category ? ann.category.toLowerCase() : 'announcement';
+                const authorInitials = getInitials(ann.profiles?.full_name || ann.profiles?.email || 'Admin');
+                const timeAgo = getTimeAgo(new Date(ann.created_at));
+                
+                return `
+                    <div class="post-card" data-category="${categoryClass}">
+                        <div class="post-header">
+                            <div class="post-avatar">${authorInitials}</div>
+                            <div class="post-info">
+                                <h3>${ann.profiles?.full_name || ann.profiles?.email || 'Admin'}</h3>
+                                <p>${timeAgo}</p>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <h4>${ann.title}</h4>
+                            <p>${ann.content}</p>
+                            <span class="post-tag ${categoryClass}">${ann.category || 'Announcement'}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Helper functions
+        function getInitials(name) {
+            return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+        }
+
+        function getTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            const intervals = {
+                year: 31536000,
+                month: 2592000,
+                week: 604800,
+                day: 86400,
+                hour: 3600,
+                minute: 60
+            };
+            
+            for (const [unit, secondsInUnit] of Object.entries(intervals)) {
+                const interval = Math.floor(seconds / secondsInUnit);
+                if (interval >= 1) {
+                    return `${interval} ${unit}${interval > 1 ? 's' : ''} ago`;
+                }
+            }
+            return 'Just now';
+        }
+
+        // Filter posts
+        function filterPosts(category) {
+            currentFilter = category;
+            const buttons = document.querySelectorAll('.filter-btn');
+            
+            // Update active button
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Filter announcements
+            const filtered = category === 'all' 
+                ? allAnnouncements 
+                : allAnnouncements.filter(ann => (ann.category || 'announcement').toLowerCase() === category);
+            
+            renderAnnouncements(filtered);
+        }
+
+        function initTheme() {
+            const theme = localStorage.getItem('theme') || 'light';
+            if (theme === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.querySelector('.theme-toggle-btn').textContent = '☀️';
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.querySelector('.theme-toggle-btn').textContent = isDark ? '☀️' : '🌙';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            loadAnnouncements();
+        });
+    </script>
+</body>
+</html>

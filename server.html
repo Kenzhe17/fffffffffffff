@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniSync - Quick Start</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #2F345C;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .methods {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .method {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        .method h3 {
+            color: #2F345C;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        .method code {
+            background: #2F345C;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 5px;
+            display: block;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .method p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .start-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+            transition: all 0.3s;
+        }
+        .start-btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 UniSync Local Server</h1>
+        <p>Choose a method to start the local server:</p>
+        
+        <div class="methods">
+            <div class="method">
+                <h3>🐍 Python</h3>
+                <p>If you have Python installed:</p>
+                <code>python -m http.server 8000</code>
+                <p>Then visit: <strong>http://localhost:8000</strong></p>
+            </div>
+            
+            <div class="method">
+                <h3>📦 Node.js</h3>
+                <p>If you have Node.js installed:</p>
+                <code>npx http-server -p 8000</code>
+                <p>Then visit: <strong>http://localhost:8000</strong></p>
+            </div>
+            
+            <div class="method">
+                <h3>🐘 PHP</h3>
+                <p>If you have PHP installed:</p>
+                <code>php -S localhost:8000</code>
+                <p>Then visit: <strong>http://localhost:8000</strong></p>
+            </div>
+            
+            <div class="method">
+                <h3>💻 VS Code</h3>
+                <p>Install "Live Server" extension, then right-click index.html and select "Open with Live Server"</p>
+            </div>
+        </div>
+        
+        <button class="start-btn" onclick="window.location.href='index.html'">
+            I've started a server - Take me to UniSync!
+        </button>
+    </div>
+</body>
+</html>

@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniSync Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Light mode (default) */
+        body {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        /* Dark mode */
+        body.dark-mode {
+            background: #1f2441;
+            color: #f5f5f5;
+        }
+
+        .navbar {
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .navbar {
+            background: #2F345C;
+            border-bottom-color: #444;
+        }
+
+        .navbar-brand {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2F345C;
+        }
+
+        body.dark-mode .navbar-brand {
+            color: #fff;
+        }
+
+        .navbar-right {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .theme-toggle, .logout-btn {
+            background: #4b5cb7;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .theme-toggle {
+            padding: 8px 12px;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle:hover, .logout-btn:hover {
+            background: #3a46a1;
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: #2F345C;
+        }
+
+        body.dark-mode .page-title {
+            color: #fff;
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #e0e0e0;
+            background: white;
+            padding: 0 0 0 0;
+            border-radius: 8px 8px 0 0;
+            overflow-x: auto;
+        }
+
+        body.dark-mode .tab-nav {
+            background: #2F345C;
+            border-bottom-color: #444;
+        }
+
+        .tab-btn {
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            color: #666;
+            cursor: pointer;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        body.dark-mode .tab-btn {
+            color: #aaa;
+        }
+
+        .tab-btn.active {
+            color: #4b5cb7;
+            border-bottom-color: #4b5cb7;
+        }
+
+        body.dark-mode .tab-btn.active {
+            color: #6fa3ff;
+            border-bottom-color: #6fa3ff;
+        }
+
+        .tab-btn:hover {
+            color: #4b5cb7;
+        }
+
+        body.dark-mode .tab-btn:hover {
+            color: #6fa3ff;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        body.dark-mode .stat-card {
+            background: #2F345C;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        body.dark-mode .stat-card:hover {
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        body.dark-mode .stat-label {
+            color: #aaa;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2F345C;
+        }
+
+        body.dark-mode .stat-value {
+            color: #4b5cb7;
+        }
+
+        /* Content Container */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Controls */
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        body.dark-mode .controls {
+            background: #2F345C;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .search-input, .filter-select {
+            padding: 10px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        body.dark-mode .search-input,
+        body.dark-mode .filter-select {
+            background: #1f2441;
+            border-color: #444;
+            color: #f5f5f5;
+        }
+
+        /* Table */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        body.dark-mode .table-container {
+            background: #2F345C;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f0f0f0;
+            padding: 16px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #666;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        body.dark-mode th {
+            background: #1f2441;
+            color: #aaa;
+            border-bottom-color: #444;
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid #e0e0e0;
+            color: #333;
+        }
+
+        body.dark-mode td {
+            border-bottom-color: #444;
+            color: #f5f5f5;
+        }
+
+        tr:hover {
+            background: #fafafa;
+        }
+
+        body.dark-mode tr:hover {
+            background: #36406d;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-lost {
+            background: #ffe0e0;
+            color: #c00;
+        }
+
+        .status-found {
+            background: #e0f0ff;
+            color: #00a;
+        }
+
+        .status-returned {
+            background: #e0ffe0;
+            color: #0a0;
+        }
+
+        .btn-small {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            margin-right: 4px;
+        }
+
+        .btn-primary {
+            background: #4b5cb7;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #3a46a1;
+        }
+
+        .btn-danger {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #ee5a52;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 32px;
+            border-radius: 12px;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        body.dark-mode .modal-content {
+            background: #2F345C;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #2F345C;
+        }
+
+        body.dark-mode .modal-title {
+            color: #fff;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: #2F345C;
+        }
+
+        body.dark-mode .form-group label {
+            color: #f5f5f5;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        body.dark-mode .form-group input,
+        body.dark-mode .form-group textarea,
+        body.dark-mode .form-group select {
+            background: #1f2441;
+            border-color: #444;
+            color: #f5f5f5;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #4b5cb7;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            justify-content: flex-end;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        body.dark-mode .empty-state {
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">📱 UniSync Admin</div>
+        <div class="navbar-right">
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 class="page-title">Admin Dashboard</h1>
+
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('overview')">Overview</button>
+            <button class="tab-btn" onclick="switchTab('lostfound')">Lost & Found</button>
+            <button class="tab-btn" onclick="switchTab('roomfinder')">Room Finder</button>
+            <button class="tab-btn" onclick="switchTab('announcements')">Announcements</button>
+        </div>
+
+        <!-- Overview Tab -->
+        <div class="tab-content active" id="overview">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Lost Items</div>
+                    <div class="stat-value" id="statLostTotal">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Found Items</div>
+                    <div class="stat-value" id="statFoundTotal">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Returned Items</div>
+                    <div class="stat-value" id="statReturned">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Active Announcements</div>
+                    <div class="stat-value" id="statAnnouncements">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Rooms</div>
+                    <div class="stat-value" id="statRooms">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Available Rooms</div>
+                    <div class="stat-value" id="statAvailableRooms">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lost & Found Tab -->
+        <div class="tab-content" id="lostfound">
+            <div class="controls">
+                <input type="text" class="search-input" id="lfSearch" placeholder="Search items..." onkeyup="filterLostFound()">
+                <select class="filter-select" id="lfType" onchange="filterLostFound()">
+                    <option value="">All Types</option>
+                    <option value="lost">Lost</option>
+                    <option value="found">Found</option>
+                </select>
+                <button class="btn-small btn-primary" onclick="openAddLostFoundModal()">+ Add Item</button>
+            </div>
+
+            <div class="table-container">
+                <table id="lfTable">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Category</th>
+                            <th>Type</th>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lfBody"></tbody>
+                </table>
+            </div>
+            <div id="lfEmpty" class="empty-state" style="display: none;">
+                <p>No items found</p>
+            </div>
+        </div>
+
+        <!-- Room Finder Tab -->
+        <div class="tab-content" id="roomfinder">
+            <!-- Replaced simple room list with hierarchical block/room/schedule management -->
+            <div class="controls">
+                <button class="btn-small btn-primary" onclick="resetRoomView()">← Back to Blocks</button>
+                <button class="btn-small btn-success" onclick="initializeSampleSchedule()">Initialize Sample Data</button>
+            </div>
+
+            <!-- Block Selection View -->
+            <div id="blockView" style="display: block;">
+                <h3 style="margin-bottom: 20px; color: #2F345C; font-size: 20px;">Select a Block</h3>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                    <div class="stat-card" style="cursor: pointer;" onclick="showRooms('D')">
+                        <div style="font-size: 48px; font-weight: 700; color: #4b5cb7; text-align: center; margin-bottom: 10px;">D</div>
+                        <div style="text-align: center; color: #666; font-size: 14px;">Block D</div>
+                    </div>
+                    <div class="stat-card" style="cursor: pointer;" onclick="showRooms('E')">
+                        <div style="font-size: 48px; font-weight: 700; color: #4b5cb7; text-align: center; margin-bottom: 10px;">E</div>
+                        <div style="text-align: center; color: #666; font-size: 14px;">Block E</div>
+                    </div>
+                    <div class="stat-card" style="cursor: pointer;" onclick="showRooms('F')">
+                        <div style="font-size: 48px; font-weight: 700; color: #4b5cb7; text-align: center; margin-bottom: 10px;">F</div>
+                        <div style="text-align: center; color: #666; font-size: 14px;">Block F</div>
+                    </div>
+                    <div class="stat-card" style="cursor: pointer;" onclick="showRooms('G')">
+                        <div style="font-size: 48px; font-weight: 700; color: #4b5cb7; text-align: center; margin-bottom: 10px;">G</div>
+                        <div style="text-align: center; color: #666; font-size: 14px;">Block G</div>
+                    </div>
+                    <div class="stat-card" style="cursor: pointer;" onclick="showRooms('H')">
+                        <div style="font-size: 48px; font-weight: 700; color: #4b5cb7; text-align: center; margin-bottom: 10px;">H</div>
+                        <div style="text-align: center; color: #666; font-size: 14px;">Block H</div>
+                    </div>
+                    <div class="stat-card" style="cursor: pointer;" onclick="showRooms('I')">
+                        <div style="font-size: 48px; font-weight: 700; color: #4b5cb7; text-align: center; margin-bottom: 10px;">I</div>
+                        <div style="text-align: center; color: #666; font-size: 14px;">Block I</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Room Selection View -->
+            <div id="roomView" style="display: none;">
+                <h3 id="roomViewTitle" style="margin-bottom: 20px; color: #2F345C; font-size: 20px;"></h3>
+                <div id="roomGrid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;"></div>
+            </div>
+
+            <!-- Day Selection View -->
+            <div id="dayView" style="display: none;">
+                <h3 id="dayViewTitle" style="margin-bottom: 20px; color: #2F345C; font-size: 20px;"></h3>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                    <div class="stat-card" style="cursor: pointer;" onclick="showTimeSlots('Monday')">
+                        <div style="text-align: center; font-size: 18px; font-weight: 600; color: #2F345C;">Monday</div>
+                    </div>
+                    <div class="stat-card" style="cursor: pointer;" onclick="showTimeSlots('Tuesday')">
+                        <div style="text-align: center; font-size: 18px; font-weight: 600; color: #2F345C;">Tuesday</div>
+                    </div>
+                    <div class="stat-card" style="cursor: pointer;" onclick="showTimeSlots('Wednesday')">
+                        <div style="text-align: center; font-size: 18px; font-weight: 600; color: #2F345C;">Wednesday</div>
+                    </div>
+                    <div class="stat-card" style="cursor: pointer;" onclick="showTimeSlots('Thursday')">
+                        <div style="text-align: center; font-size: 18px; font-weight: 600; color: #2F345C;">Thursday</div>
+                    </div>
+                    <div class="stat-card" style="cursor: pointer;" onclick="showTimeSlots('Friday')">
+                        <div style="text-align: center; font-size: 18px; font-weight: 600; color: #2F345C;">Friday</div>
+                    </div>
+                    <div class="stat-card" style="cursor: pointer;" onclick="showTimeSlots('Saturday')">
+                        <div style="text-align: center; font-size: 18px; font-weight: 600; color: #2F345C;">Saturday</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Time Slot Management View -->
+            <div id="timeSlotView" style="display: none;">
+                <h3 id="timeSlotTitle" style="margin-bottom: 20px; color: #2F345C; font-size: 20px;"></h3>
+                <div id="timeSlotGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;"></div>
+            </div>
+        </div>
+
+        <!-- Announcements Tab -->
+        <div class="tab-content" id="announcements">
+            <div class="controls">
+                <input type="text" class="search-input" id="annSearch" placeholder="Search announcements..." onkeyup="filterAnnouncements()">
+                <button class="btn-small btn-primary" onclick="openAddAnnouncementModal()">+ Create Announcement</button>
+            </div>
+
+            <div class="table-container">
+                <table id="annTable">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>Date</th>
+                            <th>Preview</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="annBody"></tbody>
+                </table>
+            </div>
+            <div id="annEmpty" class="empty-state" style="display: none;">
+                <p>No announcements found</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lost & Found Modal -->
+    <div class="modal" id="lfModal">
+        <div class="modal-content">
+            <h2 class="modal-title">Add Lost & Found Item</h2>
+            <form onsubmit="saveLostFoundItem(event)">
+                <div class="form-group">
+                    <label>Item Type</label>
+                    <select id="lfType" required>
+                        <option value="">Select type</option>
+                        <option value="lost">Lost</option>
+                        <option value="found">Found</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="lfCategory" required>
+                        <option value="">Select category</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Clothing">Clothing</option>
+                        <option value="Books">Books</option>
+                        <option value="Accessories">Accessories</option>
+                        <option value="Keys">Keys</option>
+                        <option value="Sports">Sports</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Item Name</label>
+                    <input type="text" id="lfName" placeholder="Item name" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="lfDescription" placeholder="Item description" required></textarea>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-small" onclick="closeLFModal()">Cancel</button>
+                    <button type="submit" class="btn-small btn-primary">Save Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Room Modal -->
+    <div class="modal" id="roomModal">
+        <div class="modal-content">
+            <h2 class="modal-title">Add Room</h2>
+            <form onsubmit="saveRoom(event)">
+                <div class="form-group">
+                    <label>Block</label>
+                    <select id="roomBlock" required>
+                        <option value="">Select block</option>
+                        <option value="D">Block D</option>
+                        <option value="E">Block E</option>
+                        <option value="F">Block F</option>
+                        <option value="G">Block G</option>
+                        <option value="H">Block H</option>
+                        <option value="I">Block I</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Room Number</label>
+                    <input type="text" id="roomNumber" placeholder="e.g., 101" required>
+                </div>
+                <div class="form-group">
+                    <label>Capacity</label>
+                    <input type="number" id="roomCapacity" placeholder="e.g., 30" required>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="roomStatus" required>
+                        <option value="available">Available</option>
+                        <option value="occupied">Occupied</option>
+                        <option value="maintenance">Maintenance</option>
+                    </select>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-small" onclick="closeRoomModal()">Cancel</button>
+                    <button type="submit" class="btn-small btn-primary">Save Room</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Announcement Modal -->
+    <div class="modal" id="announcementModal">
+        <div class="modal-content">
+            <h2 class="modal-title">Create Announcement</h2>
+            <form onsubmit="saveAnnouncement(event)">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="annTitle" placeholder="Announcement title" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="annDescription" placeholder="Announcement description" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Author</label>
+                    <input type="text" id="annAuthor" placeholder="Your name" required>
+                </div>
+                <!-- New field for category, though not directly used in the update logic provided -->
+                <div class="form-group">
+                    <label>Category</label>
+                    <input type="text" id="annCategory" placeholder="e.g., general, urgent">
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-small" onclick="closeAnnouncementModal()">Cancel</button>
+                    <button type="submit" class="btn-small btn-primary">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Assume these functions are defined elsewhere (e.g., api.js)
+        // For this example, we'll mock them.
+        const mockAnnouncements = [
+            { id: '1', title: 'Welcome!', content: 'Welcome to the UniSync Admin Dashboard.', created_at: new Date().toISOString(), profiles: { email: 'admin@example.com' } },
+            { id: '2', title: 'Maintenance Update', content: 'Scheduled maintenance will occur tomorrow.', created_at: new Date().toISOString(), profiles: { email: 'it@example.com' } }
+        ];
+        let announcementCounter = mockAnnouncements.length;
+
+        async function getAnnouncements() {
+            // Simulate API call
+            await new Promise(resolve => setTimeout(resolve, 100));
+            return { data: mockAnnouncements, error: null };
+        }
+
+        async function createAnnouncement(ann) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            const newAnn = {
+                id: (++announcementCounter).toString(),
+                ...ann,
+                created_at: new Date().toISOString(),
+                profiles: { email: localStorage.getItem('adminEmail') || 'Unknown' } // Assume admin email is stored
+            };
+            mockAnnouncements.push(newAnn);
+            return { data: newAnn, error: null };
+        }
+
+        async function deleteAnnouncement(id) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            const index = mockAnnouncements.findIndex(ann => ann.id === id);
+            if (index > -1) {
+                mockAnnouncements.splice(index, 1);
+                return { data: null, error: null };
+            }
+            return { data: null, error: { message: 'Announcement not found' } };
+        }
+        
+        // Check authentication
+        function checkAuth() {
+            if (!localStorage.getItem('adminAuth')) {
+                window.location.href = 'admin-login.html';
+            }
+        }
+
+        // Initialize theme
+        function initTheme() {
+            const theme = localStorage.getItem('adminTheme') || 'light';
+            if (theme === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.querySelector('.theme-toggle').textContent = '☀️';
+            }
+        }
+
+        // Toggle theme
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('adminTheme', isDark ? 'dark' : 'light');
+            document.querySelector('.theme-toggle').textContent = isDark ? '☀️' : '🌙';
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            loadTabData(tabName);
+        }
+
+        // Load tab data
+        function loadTabData(tabName) {
+            if (tabName === 'overview') {
+                updateStats();
+            } else if (tabName === 'lostfound') {
+                loadLostFound();
+            } else if (tabName === 'roomfinder') {
+                resetRoomView(); // Ensure we start at block view for room finder
+                loadRoomFinder(); // This will call updateStats later if needed
+            } else if (tabName === 'announcements') {
+                loadAnnouncements(); // Changed to async
+            }
+        }
+
+        // Update statistics
+        function updateStats() {
+            const lostFound = JSON.parse(localStorage.getItem('lostFoundItems') || '[]');
+            const announcements = JSON.parse(localStorage.getItem('adminAnnouncements') || '[]'); // This will be replaced by DB call
+
+            document.getElementById('statLostTotal').textContent = lostFound.filter(i => i.type === 'lost').length;
+            document.getElementById('statFoundTotal').textContent = lostFound.filter(i => i.type === 'found').length;
+            document.getElementById('statReturned').textContent = lostFound.filter(i => i.status === 'returned').length;
+            // Update announcement count to reflect actual number from the (now potentially async) source
+            // For now, using the mocked data length, but a proper async update is needed for the dashboard overview.
+            // A simple approach for now: re-fetch and update.
+            getAnnouncements().then(res => {
+                if (res.data) {
+                    document.getElementById('statAnnouncements').textContent = res.data.length;
+                }
+            });
+
+
+            const schedule = getRoomSchedule();
+            const totalRooms = Object.keys(schedule).length;
+            let availableCount = 0;
+            
+            Object.values(schedule).forEach(roomSchedule => {
+                let hasAvailableSlot = false;
+                Object.values(roomSchedule).forEach(daySchedule => {
+                    Object.values(daySchedule).forEach(status => {
+                        if (status === 'available') {
+                            hasAvailableSlot = true;
+                        }
+                    });
+                });
+                if (hasAvailableSlot) availableCount++;
+            });
+            
+            document.getElementById('statRooms').textContent = totalRooms;
+            document.getElementById('statAvailableRooms').textContent = availableCount;
+        }
+
+        // Lost & Found Functions
+        function loadLostFound() {
+            const items = JSON.parse(localStorage.getItem('lostFoundItems') || '[]');
+            renderLostFoundTable(items);
+        }
+
+        function renderLostFoundTable(items) {
+            const tbody = document.getElementById('lfBody');
+            const empty = document.getElementById('lfEmpty');
+
+            if (items.length === 0) {
+                tbody.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+
+            empty.style.display = 'none';
+            tbody.innerHTML = items.map((item, idx) => `
+                <tr>
+                    <td>${item.name}</td>
+                    <td>${item.category}</td>
+                    <td>${item.type}</td>
+                    <td>${item.date}</td>
+                    <td>${item.description.substring(0, 50)}...</td>
+                    <td><span class="status-badge status-${item.type}">${item.type.toUpperCase()}</span></td>
+                    <td>
+                        <button class="btn-small btn-primary" onclick="editLostFound(${idx})">Edit</button>
+                        <button class="btn-small btn-danger" onclick="deleteLostFound(${idx})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function filterLostFound() {
+            const search = document.getElementById('lfSearch').value.toLowerCase();
+            const type = document.getElementById('lfType').value;
+            const items = JSON.parse(localStorage.getItem('lostFoundItems') || '[]');
+
+            const filtered = items.filter(item => {
+                const matchesSearch = item.name.toLowerCase().includes(search) || item.description.toLowerCase().includes(search);
+                const matchesType = !type || item.type === type;
+                return matchesSearch && matchesType;
+            });
+
+            renderLostFoundTable(filtered);
+        }
+
+        function openAddLostFoundModal() {
+            document.getElementById('lfModal').classList.add('show');
+        }
+
+        function closeLFModal() {
+            document.getElementById('lfModal').classList.remove('show');
+        }
+
+        function saveLostFoundItem(event) {
+            event.preventDefault();
+            const items = JSON.parse(localStorage.getItem('lostFoundItems') || '[]');
+            const newItem = {
+                name: document.getElementById('lfName').value,
+                type: document.getElementById('lfType').value,
+                category: document.getElementById('lfCategory').value,
+                description: document.getElementById('lfDescription').value,
+                date: new Date().toLocaleDateString(),
+                status: document.getElementById('lfType').value // This might need adjustment if status has more options
+            };
+
+            items.push(newItem);
+            localStorage.setItem('lostFoundItems', JSON.stringify(items));
+            closeLFModal();
+            loadLostFound();
+            updateStats();
+        }
+
+        function editLostFound(idx) {
+            // Implementation for editing would go here
+            alert('Edit functionality not implemented yet.');
+        }
+
+        function deleteLostFound(idx) {
+            if (confirm('Are you sure you want to delete this item?')) {
+                const items = JSON.parse(localStorage.getItem('lostFoundItems') || '[]');
+                items.splice(idx, 1);
+                localStorage.setItem('lostFoundItems', JSON.stringify(items));
+                loadLostFound();
+                updateStats();
+            }
+        }
+
+        // Room Finder Functions
+        function loadRoomFinder() {
+            // This function is now primarily for setting up the initial view (block view)
+            // The actual loading of rooms and schedules happens in showRooms, showDays, showTimeSlots
+            resetRoomView(); // Ensure we are in the block view
+            updateStats(); // Update stats when room finder is loaded
+        }
+
+        // The previous renderRoomTable and saveRoom, deleteRoom, openAddRoomModal, closeRoomModal are now superseded by the new room scheduling system.
+        // They are kept here for context but will not be used by the new functionality.
+        // If a simple room list is still desired, these functions would need to be re-integrated.
+
+        // Announcements Functions
+        // async function loadAnnouncements() {
+        //     // Replaced by the async version below
+        // }
+
+        async function loadAnnouncements() {
+            try {
+                const { data, error } = await getAnnouncements();
+                if (error) throw error;
+                renderAnnouncementTable(data || []);
+            } catch (error) {
+                console.error('Error loading announcements:', error);
+                alert('Failed to load announcements');
+            }
+        }
+
+        function renderAnnouncementTable(announcements) {
+            const tbody = document.getElementById('annBody');
+            const empty = document.getElementById('annEmpty');
+
+            if (announcements.length === 0) {
+                tbody.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+
+            empty.style.display = 'none';
+            tbody.innerHTML = announcements.map(ann => `
+                <tr>
+                    <td>${ann.title}</td>
+                    <td>${ann.profiles?.full_name || ann.profiles?.email || 'Unknown'}</td>
+                    <td>${new Date(ann.created_at).toLocaleDateString()}</td>
+                    <td>${ann.content.substring(0, 40)}...</td>
+                    <td>
+                        <button class="btn-small btn-danger" onclick="deleteAnnouncementById('${ann.id}')">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // async function filterAnnouncements() {
+        //     // Replaced by the async version below
+        // }
+
+        async function filterAnnouncements() {
+            const search = document.getElementById('annSearch').value.toLowerCase();
+            
+            try {
+                const { data, error } = await getAnnouncements();
+                if (error) throw error;
+
+                const filtered = (data || []).filter(ann => 
+                    ann.title.toLowerCase().includes(search) || ann.content.toLowerCase().includes(search)
+                );
+
+                renderAnnouncementTable(filtered);
+            } catch (error) {
+                console.error('Error filtering announcements:', error);
+            }
+        }
+
+        // async function openAddAnnouncementModal() {
+        //     // Replaced by the async version below
+        // }
+
+        function openAddAnnouncementModal() {
+            document.getElementById('announcementModal').classList.add('show');
+        }
+
+        // async function closeAnnouncementModal() {
+        //     // Replaced by the async version below
+        // }
+
+        function closeAnnouncementModal() {
+            document.getElementById('announcementModal').classList.remove('show');
+        }
+
+        // async function saveAnnouncement(event) {
+        //     // Replaced by the async version below
+        // }
+
+        async function saveAnnouncement(event) {
+            event.preventDefault();
+            
+            const newAnn = {
+                title: document.getElementById('annTitle').value,
+                content: document.getElementById('annDescription').value,
+                category: document.getElementById('annCategory')?.value || 'announcement'
+            };
+
+            try {
+                const { data, error } = await createAnnouncement(newAnn);
+                if (error) throw error;
+                
+                closeAnnouncementModal();
+                await loadAnnouncements();
+                updateStats();
+                
+                // Clear form
+                document.getElementById('annTitle').value = '';
+                document.getElementById('annDescription').value = '';
+                if (document.getElementById('annCategory')) {
+                    document.getElementById('annCategory').value = '';
+                }
+            } catch (error) {
+                console.error('Error saving announcement:', error);
+                alert('Failed to save announcement: ' + error.message);
+            }
+        }
+
+        // async function deleteAnnouncementById(id) {
+        //     // Replaced by the async version below
+        // }
+
+        async function deleteAnnouncementById(id) {
+            if (!confirm('Are you sure you want to delete this announcement?')) return;
+            
+            try {
+                const { error } = await deleteAnnouncement(id);
+                if (error) throw error;
+                
+                await loadAnnouncements();
+                updateStats();
+            } catch (error) {
+                console.error('Error deleting announcement:', error);
+                alert('Failed to delete announcement: ' + error.message);
+            }
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('adminAuth');
+            localStorage.removeItem('adminEmail');
+            window.location.href = 'admin-login.html';
+        }
+
+        let currentBlock = null;
+        let currentRoom = null;
+        let currentDay = null;
+
+        const timeSlots = [
+            '08:30-09:20',
+            '09:30-10:20',
+            '10:30-11:20',
+            '11:30-12:20',
+            '12:30-13:20',
+            '13:30-14:20',
+            '14:30-15:20',
+            '15:30-16:20',
+            '16:30-17:20'
+        ];
+
+        const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+        function initializeSampleSchedule() {
+            const schedule = {};
+            const blocks = ['D', 'E', 'F', 'G', 'H', 'I'];
+            
+            blocks.forEach(block => {
+                for (let floor = 1; floor <= 3; floor++) {
+                    for (let room = 1; room <= 4; room++) {
+                        const roomNum = `${block}${floor}0${room}`; // Example room numbering: D101, D102, ...
+                        schedule[roomNum] = {};
+                        
+                        weekDays.forEach(day => {
+                            schedule[roomNum][day] = {};
+                            timeSlots.forEach(slot => {
+                                schedule[roomNum][day][slot] = Math.random() > 0.5 ? 'available' : 'occupied';
+                            });
+                        });
+                    }
+                }
+            });
+            
+            localStorage.setItem('roomSchedule', JSON.stringify(schedule));
+            alert('Sample schedule data initialized!');
+            updateStats(); // Update stats after initializing sample data
+        }
+
+        function getRoomSchedule() {
+            const schedule = localStorage.getItem('roomSchedule');
+            return schedule ? JSON.parse(schedule) : {};
+        }
+
+        function saveRoomSchedule(schedule) {
+            localStorage.setItem('roomSchedule', JSON.stringify(schedule));
+            updateStats(); // Update stats after saving schedule
+        }
+
+        function showRooms(block) {
+            currentBlock = block;
+            document.getElementById('blockView').style.display = 'none';
+            document.getElementById('roomView').style.display = 'block';
+            document.getElementById('dayView').style.display = 'none';
+            document.getElementById('timeSlotView').style.display = 'none';
+            
+            document.getElementById('roomViewTitle').textContent = `Block ${block} - Select a Room`;
+            
+            const roomGrid = document.getElementById('roomGrid');
+            roomGrid.innerHTML = '';
+            
+            // Assuming 3 floors and 4 rooms per floor for this example
+            for (let floor = 1; floor <= 3; floor++) {
+                const floorTitle = document.createElement('div');
+                floorTitle.style.gridColumn = '1 / -1'; // Span across all columns
+                floorTitle.style.fontWeight = '600';
+                floorTitle.style.marginTop = floor > 1 ? '20px' : '0';
+                floorTitle.style.marginBottom = '8px';
+                floorTitle.style.color = '#2F345C'; // Consistent with page title color
+                floorTitle.textContent = `${floor}${floor === 1 ? 'st' : floor === 2 ? 'nd' : 'rd'} Floor`;
+                roomGrid.appendChild(floorTitle);
+                
+                for (let room = 1; room <= 4; room++) {
+                    const roomNum = `${block}${floor}0${room}`; // Example room numbering: D101, D102, ...
+                    const roomCard = document.createElement('div');
+                    roomCard.className = 'stat-card'; // Reuse card styling
+                    roomCard.style.cursor = 'pointer';
+                    roomCard.onclick = () => showDays(roomNum);
+                    roomCard.innerHTML = `
+                        <div style="text-align: center; font-size: 24px; font-weight: 700; color: #4b5cb7;">${roomNum}</div>
+                        <div style="text-align: center; color: #666; font-size: 12px; margin-top: 4px;">Room ${room}</div>
+                    `;
+                    roomGrid.appendChild(roomCard);
+                }
+            }
+        }
+
+        function showDays(room) {
+            currentRoom = room;
+            document.getElementById('blockView').style.display = 'none';
+            document.getElementById('roomView').style.display = 'none';
+            document.getElementById('dayView').style.display = 'block';
+            document.getElementById('timeSlotView').style.display = 'none';
+            
+            document.getElementById('dayViewTitle').textContent = `Room ${room} - Select a Day`;
+        }
+
+        function showTimeSlots(day) {
+            currentDay = day;
+            document.getElementById('blockView').style.display = 'none';
+            document.getElementById('roomView').style.display = 'none';
+            document.getElementById('dayView').style.display = 'none';
+            document.getElementById('timeSlotView').style.display = 'block';
+            
+            document.getElementById('timeSlotTitle').textContent = `Room ${currentRoom} - ${day}`;
+            
+            const schedule = getRoomSchedule();
+            const roomSchedule = schedule[currentRoom] || {};
+            const daySchedule = roomSchedule[day] || {};
+            
+            const timeSlotGrid = document.getElementById('timeSlotGrid');
+            timeSlotGrid.innerHTML = '';
+            
+            timeSlots.forEach(slot => {
+                const status = daySchedule[slot] || 'available'; // Default to available if not set
+                const isAvailable = status === 'available';
+                
+                const slotCard = document.createElement('div');
+                slotCard.className = 'stat-card';
+                slotCard.style.cursor = 'pointer';
+                slotCard.style.border = `2px solid ${isAvailable ? '#10b981' : '#ff6b6b'}`; // Green for available, red for occupied
+                slotCard.style.backgroundColor = isAvailable ? '#e0ffe0' : '#ffe0e0'; // Light green/red background
+                slotCard.onclick = () => toggleTimeSlot(slot);
+                slotCard.innerHTML = `
+                    <div style="text-align: center; font-size: 18px; font-weight: 600; color: #2F345C;">${slot}</div>
+                    <div style="text-align: center; margin-top: 8px;">
+                        <span style="display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; background: ${isAvailable ? '#10b981' : '#ff6b6b'}; color: white;">
+                            ${isAvailable ? 'Available' : 'Occupied'}
+                        </span>
+                    </div>
+                `;
+                timeSlotGrid.appendChild(slotCard);
+            });
+        }
+
+        function toggleTimeSlot(slot) {
+            const schedule = getRoomSchedule();
+            
+            // Ensure nested objects exist
+            if (!schedule[currentRoom]) {
+                schedule[currentRoom] = {};
+            }
+            if (!schedule[currentRoom][currentDay]) {
+                schedule[currentRoom][currentDay] = {};
+            }
+            
+            const currentStatus = schedule[currentRoom][currentDay][slot] || 'available';
+            schedule[currentRoom][currentDay][slot] = currentStatus === 'available' ? 'occupied' : 'available';
+            
+            saveRoomSchedule(schedule); // Save changes and update stats
+            showTimeSlots(currentDay); // Re-render the time slots to reflect changes
+        }
+
+        function resetRoomView() {
+            currentBlock = null;
+            currentRoom = null;
+            currentDay = null;
+            
+            document.getElementById('blockView').style.display = 'block';
+            document.getElementById('roomView').style.display = 'none';
+            document.getElementById('dayView').style.display = 'none';
+            document.getElementById('timeSlotView').style.display = 'none';
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            initTheme();
+            // Load initial tab data based on the active tab (Overview is active by default)
+            loadTabData('overview');
+        });
+    </script>
+</body>
+</html>

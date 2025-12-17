@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniSync Admin - Login</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="lib/supabase-local.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #2F345C 0%, #1f2441 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s ease;
+        }
+
+        body.light-mode {
+            background: linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%);
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        body.light-mode .login-card {
+            background: #ffffff;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h1 {
+            color: #2F345C;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .login-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #2F345C;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            background: #fafafa;
+            color: #333;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4b5cb7;
+            background: #fff;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: #4b5cb7;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .login-btn:hover {
+            background: #3a46a1;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(75, 92, 183, 0.3);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c00;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #4b5cb7;
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s;
+        }
+
+        body.light-mode .theme-toggle {
+            background: #333;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h1>UniSync Admin</h1>
+                <p>Lost & Found Management</p>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="admin@sdu.edu.kz" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="login-btn">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Initialize theme
+        function initTheme() {
+            const savedTheme = localStorage.getItem('adminTheme') || 'dark';
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-mode');
+                document.querySelector('.theme-toggle').textContent = '☀️';
+            }
+        }
+
+        // Toggle theme
+        function toggleTheme() {
+            const isLight = document.body.classList.toggle('light-mode');
+            const theme = isLight ? 'light' : 'dark';
+            localStorage.setItem('adminTheme', theme);
+            document.querySelector('.theme-toggle').textContent = isLight ? '☀️' : '🌙';
+        }
+
+        let isLoading = false;
+
+        async function handleLogin(event) {
+            event.preventDefault();
+
+            if (isLoading) return;
+            isLoading = true;
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('errorMessage');
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            
+            submitBtn.textContent = 'Logging in...';
+            submitBtn.disabled = true;
+
+            const isSduEmail = email.endsWith('@sdu.edu.kz');
+            const isAdminEmail = email === 'adminsync17@gmail.com';
+            
+            if ((!isSduEmail && !isAdminEmail) || password.length < 6) {
+                errorDiv.textContent = 'Invalid credentials. Use any @sdu.edu.kz email or adminsync17@gmail.com (password must be 6+ characters)';
+                errorDiv.classList.add('show');
+                submitBtn.textContent = 'Login';
+                submitBtn.disabled = false;
+                isLoading = false;
+                setTimeout(() => {
+                    errorDiv.classList.remove('show');
+                }, 5000);
+                return;
+            }
+
+            try {
+                const { data, error } = await SupabaseLocal.signIn(email, password);
+                
+                if (error) {
+                    errorDiv.textContent = error.message;
+                    errorDiv.classList.add('show');
+                    submitBtn.textContent = 'Login';
+                    submitBtn.disabled = false;
+                    isLoading = false;
+                    setTimeout(() => {
+                        errorDiv.classList.remove('show');
+                    }, 5000);
+                    return;
+                }
+
+                // Store admin data
+                localStorage.setItem('adminAuth', 'true');
+                localStorage.setItem('adminEmail', email);
+                localStorage.setItem('adminId', data.user.id);
+                localStorage.setItem('isAdmin', data.user.is_admin || false);
+                
+                window.location.href = 'admin.html';
+            } catch (error) {
+                console.error('Login error:', error);
+                errorDiv.textContent = error.message || 'An error occurred during login';
+                errorDiv.classList.add('show');
+                submitBtn.textContent = 'Login';
+                submitBtn.disabled = false;
+                isLoading = false;
+                setTimeout(() => {
+                    errorDiv.classList.remove('show');
+                }, 5000);
+            }
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', initTheme);
+    </script>
+</body>
+</html>
