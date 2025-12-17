@@ -7,8 +7,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Replaced Supabase SDK with local storage implementation -->
-    <script src="lib/supabase-local.js"></script>
+    <!-- Using real Supabase SDK instead of local storage -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module" src="lib/supabase.js"></script>
     <style>
         * {
             margin: 0;
